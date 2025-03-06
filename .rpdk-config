@@ -19,10 +19,5 @@
         "use_docker": true,
         "no_docker": false,
         "protocolVersion": "2.0.0"
-    },
-    "canarySettings": {
-        "contract_test_file_names": [
-            "inputs_1.json"
-        ]
     }
 }
