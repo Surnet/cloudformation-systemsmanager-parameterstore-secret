@@ -89,7 +89,7 @@ class Resource extends BaseResource<ResourceModel> {
                 excludeSimilarCharacters: passwordOptions.excludeSimilarCharacters
             });
             
-            const params: any = {
+            const params: SSM.Types.PutParameterRequest = {
                 Name: model.name,
                 Type: 'SecureString',
                 Value: generatedPassword,
@@ -99,6 +99,10 @@ class Resource extends BaseResource<ResourceModel> {
             if (model.description) params.Description = model.description;
             if (model.keyId) params.KeyId = model.keyId;
             if (model.tier) params.Tier = model.tier;
+            // if (model.tags) params.Tags = Array.from(model.tags, ({ key, value_ }) => ({
+            //     Key: key,
+            //     Value: value_
+            // }));
             
             await ssm.putParameter(params).promise();
             
@@ -167,6 +171,10 @@ class Resource extends BaseResource<ResourceModel> {
             if (model.description) params.Description = model.description;
             if (model.keyId) params.KeyId = model.keyId;
             if (model.tier) params.Tier = model.tier;
+            // if (model.tags) params.Tags = Array.from(model.tags, ({ key, value_ }) => ({
+            //     Key: key,
+            //     Value: value_
+            // }));
             
             await ssm.putParameter(params).promise();
             
