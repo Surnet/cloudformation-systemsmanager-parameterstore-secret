@@ -1,0 +1,26 @@
+{
+    "name": "surnet-parameterstore-secret",
+    "version": "0.1.0",
+    "description": "AWS custom resource provider named Surnet::ParameterStore::Secret.",
+    "private": true,
+    "main": "dist/handlers.js",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "npx tsc --skipLibCheck",
+        "prepack": "npm run build",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "@amazon-web-services-cloudformation/cloudformation-cli-typescript-lib": "^1.0.1",
+        "class-transformer": "0.3.1"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "typescript": "^5.3.0"
+    },
+    "optionalDependencies": {
+        "aws-sdk": "^2.656.0"
+    }
+}
