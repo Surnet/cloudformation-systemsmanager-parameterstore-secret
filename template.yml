@@ -11,7 +11,7 @@ Resources:
   TestEntrypoint:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handlers.testEntrypoint
+      Handler: src/handlers.testEntrypoint
       Runtime: nodejs20.x
       CodeUri: ./
       Architectures:
@@ -20,7 +20,7 @@ Resources:
   TypeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handlers.entrypoint
+      Handler: src/handlers.entrypoint
       Runtime: nodejs20.x
       CodeUri: ./
       Architectures:
