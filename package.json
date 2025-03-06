@@ -8,13 +8,14 @@
         "dist"
     ],
     "scripts": {
-        "build": "npx tsc --skipLibCheck",
+        "build": "tsc",
         "prepack": "npm run build",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "dependencies": {
         "@amazon-web-services-cloudformation/cloudformation-cli-typescript-lib": "^1.0.1",
-        "class-transformer": "0.3.1"
+        "class-transformer": "0.3.1",
+        "esbuild": "^0.25.0"
     },
     "devDependencies": {
         "@types/node": "^20.0.0",
