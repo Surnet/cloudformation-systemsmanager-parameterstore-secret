@@ -1,6 +1,6 @@
 # Surnet::ParameterStore::Secret
 
-An example resource schema demonstrating some basic constructs and validation rules.
+Resource schema for creating and managing AWS Systems Manager Parameter Store Secrets with generated passwords
 
 ## Syntax
 
@@ -12,14 +12,11 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 {
     "Type" : "Surnet::ParameterStore::Secret",
     "Properties" : {
-        "<a href="#title" title="Title">Title</a>" : <i>String</i>,
-        "<a href="#coversheetincluded" title="CoverSheetIncluded">CoverSheetIncluded</a>" : <i>Boolean</i>,
-        "<a href="#duedate" title="DueDate">DueDate</a>" : <i>String</i>,
-        "<a href="#approvaldate" title="ApprovalDate">ApprovalDate</a>" : <i>String</i>,
-        "<a href="#memo" title="Memo">Memo</a>" : <i><a href="memo.md">Memo</a></i>,
-        "<a href="#secondcopyofmemo" title="SecondCopyOfMemo">SecondCopyOfMemo</a>" : <i><a href="memo.md">Memo</a></i>,
-        "<a href="#testcode" title="TestCode">TestCode</a>" : <i>String</i>,
-        "<a href="#authors" title="Authors">Authors</a>" : <i>[ String, ... ]</i>,
+        "<a href="#name" title="Name">Name</a>" : <i>String</i>,
+        "<a href="#description" title="Description">Description</a>" : <i>String</i>,
+        "<a href="#keyid" title="KeyId">KeyId</a>" : <i>String</i>,
+        "<a href="#tier" title="Tier">Tier</a>" : <i>String</i>,
+        "<a href="#passwordoptions" title="PasswordOptions">PasswordOptions</a>" : <i><a href="passwordoptions.md">PasswordOptions</a></i>,
         "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tag.md">Tag</a>, ... ]</i>
     }
 }
@@ -30,92 +27,74 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 <pre>
 Type: Surnet::ParameterStore::Secret
 Properties:
-    <a href="#title" title="Title">Title</a>: <i>String</i>
-    <a href="#coversheetincluded" title="CoverSheetIncluded">CoverSheetIncluded</a>: <i>Boolean</i>
-    <a href="#duedate" title="DueDate">DueDate</a>: <i>String</i>
-    <a href="#approvaldate" title="ApprovalDate">ApprovalDate</a>: <i>String</i>
-    <a href="#memo" title="Memo">Memo</a>: <i><a href="memo.md">Memo</a></i>
-    <a href="#secondcopyofmemo" title="SecondCopyOfMemo">SecondCopyOfMemo</a>: <i><a href="memo.md">Memo</a></i>
-    <a href="#testcode" title="TestCode">TestCode</a>: <i>String</i>
-    <a href="#authors" title="Authors">Authors</a>: <i>
-      - String</i>
+    <a href="#name" title="Name">Name</a>: <i>String</i>
+    <a href="#description" title="Description">Description</a>: <i>String</i>
+    <a href="#keyid" title="KeyId">KeyId</a>: <i>String</i>
+    <a href="#tier" title="Tier">Tier</a>: <i>String</i>
+    <a href="#passwordoptions" title="PasswordOptions">PasswordOptions</a>: <i><a href="passwordoptions.md">PasswordOptions</a></i>
     <a href="#tags" title="Tags">Tags</a>: <i>
       - <a href="tag.md">Tag</a></i>
 </pre>
 
 ## Properties
 
-#### Title
+#### Name
 
-The title of the TPS report is a mandatory element.
-
-_Required_: Yes
-
-_Type_: String
-
-_Minimum Length_: <code>20</code>
-
-_Maximum Length_: <code>250</code>
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### CoverSheetIncluded
-
-Required for all TPS Reports submitted after 2/19/1999
-
-_Required_: No
-
-_Type_: Boolean
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### DueDate
-
-_Required_: No
-
-_Type_: String
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### ApprovalDate
-
-_Required_: No
-
-_Type_: String
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### Memo
-
-_Required_: No
-
-_Type_: <a href="memo.md">Memo</a>
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### SecondCopyOfMemo
-
-_Required_: No
-
-_Type_: <a href="memo.md">Memo</a>
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### TestCode
+The name of the parameter. Must be unique in the current account and region.
 
 _Required_: Yes
 
 _Type_: String
 
-_Allowed Values_: <code>NOT_STARTED</code> | <code>CANCELLED</code>
+_Minimum Length_: <code>1</code>
 
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+_Maximum Length_: <code>2048</code>
 
-#### Authors
+_Pattern_: <code>^[a-zA-Z0-9_.-/]+$</code>
+
+_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+
+#### Description
+
+Information about the parameter that you want to add to the system.
 
 _Required_: No
 
-_Type_: List of String
+_Type_: String
+
+_Maximum Length_: <code>1024</code>
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### KeyId
+
+The KMS key ID to use to encrypt the parameter. If not provided, AWS will use the default key.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### Tier
+
+Parameter Store parameter tier.
+
+_Required_: No
+
+_Type_: String
+
+_Allowed Values_: <code>Standard</code> | <code>Advanced</code>
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### PasswordOptions
+
+Options for password generation
+
+_Required_: No
+
+_Type_: <a href="passwordoptions.md">PasswordOptions</a>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -133,7 +112,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 ### Ref
 
-When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the TPSCode.
+When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the Name.
 
 ### Fn::GetAtt
 
@@ -141,7 +120,7 @@ The `Fn::GetAtt` intrinsic function returns a value for a specified attribute of
 
 For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::GetAtt](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html).
 
-#### TPSCode
+#### GeneratedValue
 
-A TPS Code is automatically generated on creation and assigned as the unique identifier.
+The generated password value. This is a read-only property populated after creation.
 

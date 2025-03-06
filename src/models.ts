@@ -7,77 +7,56 @@ export class ResourceModel extends BaseModel {
     public static readonly TYPE_NAME: string = 'Surnet::ParameterStore::Secret';
 
     @Exclude()
-    protected readonly IDENTIFIER_KEY_TPSCODE: string = '/properties/TPSCode';
+    protected readonly IDENTIFIER_KEY_NAME: string = '/properties/Name';
 
-    @Expose({ name: 'TPSCode' })
+    @Expose({ name: 'Name' })
     @Transform(
         ({value, obj}) =>
-            transformValue(String, 'tPSCode', value, obj, []),
+            transformValue(String, 'name', value, obj, []),
         {
             toClassOnly: true,
         }
     )
-    tPSCode?: Optional<string>;
-    @Expose({ name: 'Title' })
+    name?: Optional<string>;
+    @Expose({ name: 'Description' })
     @Transform(
         ({value, obj}) =>
-            transformValue(String, 'title', value, obj, []),
+            transformValue(String, 'description', value, obj, []),
         {
             toClassOnly: true,
         }
     )
-    title?: Optional<string>;
-    @Expose({ name: 'CoverSheetIncluded' })
+    description?: Optional<string>;
+    @Expose({ name: 'KeyId' })
     @Transform(
         ({value, obj}) =>
-            transformValue(Boolean, 'coverSheetIncluded', value, obj, []),
+            transformValue(String, 'keyId', value, obj, []),
         {
             toClassOnly: true,
         }
     )
-    coverSheetIncluded?: Optional<boolean>;
-    @Expose({ name: 'DueDate' })
+    keyId?: Optional<string>;
+    @Expose({ name: 'Tier' })
     @Transform(
         ({value, obj}) =>
-            transformValue(String, 'dueDate', value, obj, []),
+            transformValue(String, 'tier', value, obj, []),
         {
             toClassOnly: true,
         }
     )
-    dueDate?: Optional<string>;
-    @Expose({ name: 'ApprovalDate' })
+    tier?: Optional<string>;
+    @Expose({ name: 'PasswordOptions' })
+    @Type(() => PasswordOptions)
+    passwordOptions?: Optional<PasswordOptions>;
+    @Expose({ name: 'GeneratedValue' })
     @Transform(
         ({value, obj}) =>
-            transformValue(String, 'approvalDate', value, obj, []),
+            transformValue(String, 'generatedValue', value, obj, []),
         {
             toClassOnly: true,
         }
     )
-    approvalDate?: Optional<string>;
-    @Expose({ name: 'Memo' })
-    @Type(() => Memo)
-    memo?: Optional<Memo>;
-    @Expose({ name: 'SecondCopyOfMemo' })
-    @Type(() => Memo)
-    secondCopyOfMemo?: Optional<Memo>;
-    @Expose({ name: 'TestCode' })
-    @Transform(
-        ({value, obj}) =>
-            transformValue(String, 'testCode', value, obj, []),
-        {
-            toClassOnly: true,
-        }
-    )
-    testCode?: Optional<string>;
-    @Expose({ name: 'Authors' })
-    @Transform(
-        ({value, obj}) =>
-            transformValue(String, 'authors', value, obj, [Array]),
-        {
-            toClassOnly: true,
-        }
-    )
-    authors?: Optional<Array<string>>;
+    generatedValue?: Optional<string>;
     @Expose({ name: 'Tags' })
     @Transform(
         ({value, obj}) =>
@@ -91,8 +70,8 @@ export class ResourceModel extends BaseModel {
     @Exclude()
     public getPrimaryIdentifier(): Dict {
         const identifier: Dict = {};
-        if (this.tPSCode != null) {
-            identifier[this.IDENTIFIER_KEY_TPSCODE] = this.tPSCode;
+        if (this.name != null) {
+            identifier[this.IDENTIFIER_KEY_NAME] = this.name;
         }
 
         // only return the identifier if it can be used, i.e. if all components are present
@@ -107,26 +86,44 @@ export class ResourceModel extends BaseModel {
     }
 }
 
-export class Memo extends BaseModel {
+export class PasswordOptions extends BaseModel {
 
-    @Expose({ name: 'Heading' })
+    @Expose({ name: 'Length' })
     @Transform(
         ({value, obj}) =>
-            transformValue(String, 'heading', value, obj, []),
+            transformValue(Integer, 'length', value, obj, []),
         {
             toClassOnly: true,
         }
     )
-    heading?: Optional<string>;
-    @Expose({ name: 'Body' })
+    length?: Optional<integer>;
+    @Expose({ name: 'IncludeNumbers' })
     @Transform(
         ({value, obj}) =>
-            transformValue(String, 'body', value, obj, []),
+            transformValue(Boolean, 'includeNumbers', value, obj, []),
         {
             toClassOnly: true,
         }
     )
-    body?: Optional<string>;
+    includeNumbers?: Optional<boolean>;
+    @Expose({ name: 'IncludeSymbols' })
+    @Transform(
+        ({value, obj}) =>
+            transformValue(Boolean, 'includeSymbols', value, obj, []),
+        {
+            toClassOnly: true,
+        }
+    )
+    includeSymbols?: Optional<boolean>;
+    @Expose({ name: 'ExcludeSimilarCharacters' })
+    @Transform(
+        ({value, obj}) =>
+            transformValue(Boolean, 'excludeSimilarCharacters', value, obj, []),
+        {
+            toClassOnly: true,
+        }
+    )
+    excludeSimilarCharacters?: Optional<boolean>;
 
 }
 

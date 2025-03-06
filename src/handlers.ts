@@ -12,8 +12,41 @@ import {
     SessionProxy,
 } from '@amazon-web-services-cloudformation/cloudformation-cli-typescript-lib';
 import { ResourceModel, TypeConfigurationModel } from './models';
+import { SSM } from 'aws-sdk';
 
 interface CallbackContext extends Record<string, any> {}
+
+interface PasswordOptions {
+    length?: bigint;
+    includeNumbers?: boolean;
+    includeSymbols?: boolean;
+    excludeSimilarCharacters?: boolean;
+}
+
+// Helper function to generate a random password
+function generatePassword(options: PasswordOptions = {}): string {
+    const {
+        length = 16,
+        includeNumbers = true,
+        includeSymbols = true,
+        excludeSimilarCharacters = false
+    } = options;
+  
+    let chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  
+    if (includeNumbers) chars += '0123456789';
+    if (includeSymbols) chars += '!@#$%^&*()_+~`|}{[]:;?><,./-=';
+    if (excludeSimilarCharacters) {
+        chars = chars.replace(/[ilLI|`oO0]/g, '');
+    }
+  
+    let password = '';
+    for (let i = 0; i < length; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+  
+    return password;
+}
 
 class Resource extends BaseResource<ResourceModel> {
 
@@ -39,21 +72,43 @@ class Resource extends BaseResource<ResourceModel> {
     ): Promise<ProgressEvent<ResourceModel, CallbackContext>> {
         const model = new ResourceModel(request.desiredResourceState);
         const progress = ProgressEvent.progress<ProgressEvent<ResourceModel, CallbackContext>>(model);
-        // TODO: put code here
-
-        // Example:
+        
         try {
-            if (session instanceof SessionProxy) {
-                const client = session.client('S3');
+            if (!(session instanceof SessionProxy)) {
+                throw new exceptions.InternalFailure('Session not initialized');
             }
-            // Setting Status to success will signal to CloudFormation that the operation is complete
+            
+            logger.log(`Creating parameter ${model.name}`);
+            const ssm = session.client<SSM>('SSM');
+            
+            const passwordOptions: PasswordOptions = model.passwordOptions || {};
+            const generatedPassword = generatePassword({
+                length: passwordOptions.length,
+                includeNumbers: passwordOptions.includeNumbers !== false,
+                includeSymbols: passwordOptions.includeSymbols !== false,
+                excludeSimilarCharacters: passwordOptions.excludeSimilarCharacters
+            });
+            
+            const params: any = {
+                Name: model.name,
+                Type: 'SecureString',
+                Value: generatedPassword,
+                Overwrite: false
+            };
+            
+            if (model.description) params.Description = model.description;
+            if (model.keyId) params.KeyId = model.keyId;
+            if (model.tier) params.Tier = model.tier;
+            
+            await ssm.putParameter(params).promise();
+            
+            // Set the generated value on the model
+            model.generatedValue = generatedPassword;
+            progress.resourceModel = model;
             progress.status = OperationStatus.Success;
-        } catch(err) {
+        } catch (err) {
             logger.log(err);
-            // exceptions module lets CloudFormation know the type of failure that occurred
             throw new exceptions.InternalFailure(err.message);
-            // this can also be done by returning a failed progress event
-            // return ProgressEvent.failed(HandlerErrorCode.InternalFailure, err.message);
         }
         return progress;
     }
@@ -79,9 +134,50 @@ class Resource extends BaseResource<ResourceModel> {
         typeConfiguration: TypeConfigurationModel,
     ): Promise<ProgressEvent<ResourceModel, CallbackContext>> {
         const model = new ResourceModel(request.desiredResourceState);
+        const oldModel = request.previousResourceState;
         const progress = ProgressEvent.progress<ProgressEvent<ResourceModel, CallbackContext>>(model);
-        // TODO: put code here
-        progress.status = OperationStatus.Success;
+        
+        try {
+            if (!(session instanceof SessionProxy)) {
+                throw new exceptions.InternalFailure('Session not initialized');
+            }
+            
+            logger.log(`Updating parameter ${model.name}`);
+            
+            // If the name changes, that's not allowed (create-only property)
+            if (model.name !== oldModel?.name) {
+                throw new exceptions.InvalidRequest('Cannot update parameter name');
+            }
+            
+            const ssm = session.client<SSM>('SSM');
+            
+            // First get the existing parameter to preserve the password
+            const existingParam = await ssm.getParameter({
+                Name: model.name,
+                WithDecryption: true
+            }).promise();
+            
+            const params: any = {
+                Name: model.name,
+                Type: 'SecureString',
+                Value: existingParam.Parameter.Value,
+                Overwrite: true
+            };
+            
+            if (model.description) params.Description = model.description;
+            if (model.keyId) params.KeyId = model.keyId;
+            if (model.tier) params.Tier = model.tier;
+            
+            await ssm.putParameter(params).promise();
+            
+            // Set the generated value on the model
+            model.generatedValue = existingParam.Parameter.Value;
+            progress.resourceModel = model;
+            progress.status = OperationStatus.Success;
+        } catch (err) {
+            logger.log(err);
+            throw new exceptions.InternalFailure(err.message);
+        }
         return progress;
     }
 
@@ -108,8 +204,24 @@ class Resource extends BaseResource<ResourceModel> {
     ): Promise<ProgressEvent<ResourceModel, CallbackContext>> {
         const model = new ResourceModel(request.desiredResourceState);
         const progress = ProgressEvent.progress<ProgressEvent<ResourceModel, CallbackContext>>();
-        // TODO: put code here
-        progress.status = OperationStatus.Success;
+        
+        try {
+            if (!(session instanceof SessionProxy)) {
+                throw new exceptions.InternalFailure('Session not initialized');
+            }
+            
+            logger.log(`Deleting parameter ${model.name}`);
+            const ssm = session.client<SSM>('SSM');
+            
+            await ssm.deleteParameter({
+                Name: model.name
+            }).promise();
+            
+            progress.status = OperationStatus.Success;
+        } catch (err) {
+            logger.log(err);
+            throw new exceptions.InternalFailure(err.message);
+        }
         return progress;
     }
 
@@ -134,9 +246,39 @@ class Resource extends BaseResource<ResourceModel> {
         typeConfiguration: TypeConfigurationModel,
     ): Promise<ProgressEvent<ResourceModel, CallbackContext>> {
         const model = new ResourceModel(request.desiredResourceState);
-        // TODO: put code here
-        const progress = ProgressEvent.success<ProgressEvent<ResourceModel, CallbackContext>>(model);
-        return progress;
+        
+        try {
+            if (!(session instanceof SessionProxy)) {
+                throw new exceptions.InternalFailure('Session not initialized');
+            }
+            
+            logger.log(`Reading parameter ${model.name}`);
+            const ssm = session.client<SSM>('SSM');
+            
+            const response = await ssm.getParameter({
+                Name: model.name,
+                WithDecryption: true
+            }).promise();
+            
+            const describeResponse = await ssm.describeParameters({
+                ParameterFilters: [{
+                    Key: 'Name',
+                    Values: [model.name]
+                }]
+            }).promise();
+            
+            if (describeResponse.Parameters && describeResponse.Parameters[0]) {
+                model.description = describeResponse.Parameters[0].Description;
+                model.tier = describeResponse.Parameters[0].Tier;
+            }
+            model.generatedValue = response.Parameter.Value;
+            
+            const progress = ProgressEvent.success<ProgressEvent<ResourceModel, CallbackContext>>(model);
+            return progress;
+        } catch (err) {
+            logger.log(err);
+            throw new exceptions.InternalFailure(err.message);
+        }
     }
 
     /**
@@ -159,13 +301,31 @@ class Resource extends BaseResource<ResourceModel> {
         logger: LoggerProxy,
         typeConfiguration: TypeConfigurationModel,
     ): Promise<ProgressEvent<ResourceModel, CallbackContext>> {
-        const model = new ResourceModel(request.desiredResourceState);
-        // TODO: put code here
-        const progress = ProgressEvent.builder<ProgressEvent<ResourceModel, CallbackContext>>()
-            .status(OperationStatus.Success)
-            .resourceModels([model])
-            .build();
-        return progress;
+        try {
+            if (!(session instanceof SessionProxy)) {
+                throw new exceptions.InternalFailure('Session not initialized');
+            }
+            
+            logger.log('Listing parameters');
+            const ssm = session.client<SSM>('SSM');
+            
+            const response = await ssm.describeParameters().promise();
+            const models = response.Parameters.map(param => {
+                const model = new ResourceModel();
+                model.name = param.Name;
+                return model;
+            });
+            
+            const progress = ProgressEvent.builder<ProgressEvent<ResourceModel, CallbackContext>>()
+                .status(OperationStatus.Success)
+                .resourceModels(models)
+                .build();
+                
+            return progress;
+        } catch (err) {
+            logger.log(err);
+            throw new exceptions.InternalFailure(err.message);
+        }
     }
 }
 

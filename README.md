@@ -1,39 +1,84 @@
-# Surnet::ParameterStore::Secret
+# AWS CloudFormation Systems Manager Parameter Store Secret Extension
 
-Congratulations on starting development! Next steps:
+Diese CloudFormation Extension erlaubt das Erstellen von AWS Systems Manager Parameter Store Secrets mit automatisch generierten Passwörtern.
 
-1. Write the JSON schema describing your resource, [surnet-parameterstore-secret.json](./surnet-parameterstore-secret.json)
-2. Implement your resource handlers in [handlers.ts](./surnet-parameterstore-secret/handlers.ts)
+## Installation
 
-> Don't modify [models.ts](./surnet-parameterstore-secret/models.ts) by hand, any modifications will be overwritten when the `generate` or `package` commands are run.
+Die Resource Provider muss vor der Verwendung registriert werden:
 
-Implement CloudFormation resource here. Each function must always return a ProgressEvent.
-
-```typescript
-const progress = ProgressEvent.builder<ProgressEvent<ResourceModel>>()
-
-    // Required
-    // Must be one of OperationStatus.InProgress, OperationStatus.Failed, OperationStatus.Success
-    .status(OperationStatus.InProgress)
-    // Required on SUCCESS (except for LIST where resourceModels is required)
-    // The current resource model after the operation; instance of ResourceModel class
-    .resourceModel(model)
-    .resourceModels(null)
-    // Required on FAILED
-    // Customer-facing message, displayed in e.g. CloudFormation stack events
-    .message('')
-    // Required on FAILED a HandlerErrorCode
-    .errorCode(HandlerErrorCode.InternalFailure)
-    // Optional
-    // Use to store any state between re-invocation via IN_PROGRESS
-    .callbackContext({})
-    // Required on IN_PROGRESS
-    // The number of seconds to delay before re-invocation
-    .callbackDelaySeconds(0)
-
-    .build()
+```bash
+aws cloudformation register-type \
+  --type-name Surnet::ParameterStore::Secret \
+  --schema-handler-package s3://bucket-name/resource-handler.zip \
+  --type RESOURCE
 ```
 
-While importing the [@amazon-web-services-cloudformation/cloudformation-cli-typescript-lib](https://github.com/aws-cloudformation/cloudformation-cli-typescript-plugin) library, failures can be passed back to CloudFormation by either raising an exception from `exceptions`, or setting the ProgressEvent's `status` to `OperationStatus.Failed` and `errorCode` to one of `HandlerErrorCode`. There is a static helper function, `ProgressEvent.failed`, for this common case.
+## Verwendung
 
-Keep in mind, during runtime all logs will be delivered to CloudWatch if you use the `log()` method from `LoggerProxy` class.
+Nach der Registrierung kann die Ressource in CloudFormation Templates verwendet werden:
+
+```yaml
+Resources:
+  MyDatabaseSecret:
+    Type: Surnet::ParameterStore::Secret
+    Properties:
+      Name: /prod/db/password
+      Description: "Produktions-Datenbank Passwort"
+      PasswordOptions:
+        Length: 24
+        IncludeNumbers: true
+        IncludeSymbols: true
+        ExcludeSimilarCharacters: true
+      Tags:
+        - Key: Environment
+          Value: Production
+        - Key: Application
+          Value: MyApp
+
+Outputs:
+  DatabasePassword:
+    Value: !GetAtt MyDatabaseSecret.GeneratedValue
+    Description: "Das generierte Datenbankpasswort"
+```
+
+## Properties
+
+| Property | Typ | Beschreibung | Erforderlich |
+|----------|-----|-------------|------------|
+| Name | String | Name des Parameters im SSM Parameter Store | Ja |
+| Description | String | Beschreibung des Parameters | Nein |
+| KeyId | String | KMS Key ID für die Verschlüsselung | Nein |
+| Tier | String | Parameter Store Tier (Standard oder Advanced) | Nein |
+| PasswordOptions | Object | Optionen für die Passwortgenerierung | Nein |
+| Tags | Array | Liste von Tags | Nein |
+
+### PasswordOptions
+
+| Property | Typ | Standard | Beschreibung |
+|----------|-----|---------|-------------|
+| Length | Number | 16 | Länge des Passworts |
+| IncludeNumbers | Boolean | true | Zahlen einfügen |
+| IncludeSymbols | Boolean | true | Sonderzeichen einfügen |
+| ExcludeSimilarCharacters | Boolean | false | Ähnlich aussehende Zeichen ausschließen |
+
+## Rückgabewerte
+
+| Attribut | Beschreibung |
+|----------|-------------|
+| Name | Name des Parameters |
+| GeneratedValue | Der generierte Passwort-Wert |
+
+## Beispiel für den Zugriff auf das Passwort
+
+```yaml
+Resources:
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-12345678
+      InstanceType: t3.micro
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          echo "DB_PASSWORD=${MyDatabaseSecret.GeneratedValue}" > /etc/app/config
+```
