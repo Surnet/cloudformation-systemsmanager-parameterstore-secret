@@ -1,10 +1,10 @@
 # AWS CloudFormation Systems Manager Parameter Store Secret Extension
 
-Diese CloudFormation Extension erlaubt das Erstellen von AWS Systems Manager Parameter Store Secrets mit automatisch generierten Passwörtern.
+This CloudFormation Extension allows the creation of AWS Systems Manager Parameter Store Secrets with automatically generated passwords.
 
 ## Installation
 
-Die Resource Provider muss vor der Verwendung registriert werden:
+The Resource Provider must be registered before use:
 
 ```bash
 aws cloudformation register-type \
@@ -13,9 +13,9 @@ aws cloudformation register-type \
   --type RESOURCE
 ```
 
-## Verwendung
+## Usage
 
-Nach der Registrierung kann die Ressource in CloudFormation Templates verwendet werden:
+After registration, the resource can be used in CloudFormation templates:
 
 ```yaml
 Resources:
@@ -23,7 +23,7 @@ Resources:
     Type: Surnet::ParameterStore::Secret
     Properties:
       Name: /prod/db/password
-      Description: "Produktions-Datenbank Passwort"
+      Description: "Production database password"
       PasswordOptions:
         Length: 24
         IncludeNumbers: true
@@ -38,37 +38,37 @@ Resources:
 Outputs:
   DatabasePassword:
     Value: !GetAtt MyDatabaseSecret.GeneratedValue
-    Description: "Das generierte Datenbankpasswort"
+    Description: "The generated database password"
 ```
 
 ## Properties
 
-| Property | Typ | Beschreibung | Erforderlich |
-|----------|-----|-------------|------------|
-| Name | String | Name des Parameters im SSM Parameter Store | Ja |
-| Description | String | Beschreibung des Parameters | Nein |
-| KeyId | String | KMS Key ID für die Verschlüsselung | Nein |
-| Tier | String | Parameter Store Tier (Standard oder Advanced) | Nein |
-| PasswordOptions | Object | Optionen für die Passwortgenerierung | Nein |
-| Tags | Array | Liste von Tags | Nein |
+| Property | Type | Description | Required |
+|----------|------|-------------|----------|
+| Name | String | Name of the parameter in SSM Parameter Store | Yes |
+| Description | String | Description of the parameter | No |
+| KeyId | String | KMS Key ID for encryption | No |
+| Tier | String | Parameter Store Tier (Standard or Advanced) | No |
+| PasswordOptions | Object | Options for password generation | No |
+| Tags | Array | List of tags | No |
 
 ### PasswordOptions
 
-| Property | Typ | Standard | Beschreibung |
-|----------|-----|---------|-------------|
-| Length | Number | 16 | Länge des Passworts |
-| IncludeNumbers | Boolean | true | Zahlen einfügen |
-| IncludeSymbols | Boolean | true | Sonderzeichen einfügen |
-| ExcludeSimilarCharacters | Boolean | false | Ähnlich aussehende Zeichen ausschließen |
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| Length | Number | 16 | Length of the password |
+| IncludeNumbers | Boolean | true | Include numbers |
+| IncludeSymbols | Boolean | true | Include special characters |
+| ExcludeSimilarCharacters | Boolean | false | Exclude similar-looking characters |
 
-## Rückgabewerte
+## Return Values
 
-| Attribut | Beschreibung |
-|----------|-------------|
-| Name | Name des Parameters |
-| GeneratedValue | Der generierte Passwort-Wert |
+| Attribute | Description |
+|-----------|-------------|
+| Name | Name of the parameter |
+| GeneratedValue | The generated password value |
 
-## Beispiel für den Zugriff auf das Passwort
+## Example for accessing the password
 
 ```yaml
 Resources:
