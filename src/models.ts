@@ -1,6 +1,6 @@
 // This is a generated file. Modifications will be overwritten.
 import { BaseModel, Dict, integer, Integer, Optional, transformValue } from '@amazon-web-services-cloudformation/cloudformation-cli-typescript-lib';
-import { Exclude, Expose, Type, Transform } from 'class-transformer';
+import { Exclude, Expose, Type, Transform, TransformFnParams } from 'class-transformer';
 
 export class ResourceModel extends BaseModel {
     @Exclude()
@@ -11,8 +11,8 @@ export class ResourceModel extends BaseModel {
 
     @Expose({ name: 'Name' })
     @Transform(
-        ({value, obj}) =>
-            transformValue(String, 'name', value, obj, []),
+        (params: TransformFnParams) =>
+            transformValue(String, 'name', params.value, params.obj, []),
         {
             toClassOnly: true,
         }
@@ -20,8 +20,8 @@ export class ResourceModel extends BaseModel {
     name?: Optional<string>;
     @Expose({ name: 'Description' })
     @Transform(
-        ({value, obj}) =>
-            transformValue(String, 'description', value, obj, []),
+        (params: TransformFnParams) =>
+            transformValue(String, 'description', params.value, params.obj, []),
         {
             toClassOnly: true,
         }
@@ -29,8 +29,8 @@ export class ResourceModel extends BaseModel {
     description?: Optional<string>;
     @Expose({ name: 'KeyId' })
     @Transform(
-        ({value, obj}) =>
-            transformValue(String, 'keyId', value, obj, []),
+        (params: TransformFnParams) =>
+            transformValue(String, 'keyId', params.value, params.obj, []),
         {
             toClassOnly: true,
         }
@@ -38,8 +38,8 @@ export class ResourceModel extends BaseModel {
     keyId?: Optional<string>;
     @Expose({ name: 'Tier' })
     @Transform(
-        ({value, obj}) =>
-            transformValue(String, 'tier', value, obj, []),
+        (params: TransformFnParams) =>
+            transformValue(String, 'tier', params.value, params.obj, []),
         {
             toClassOnly: true,
         }
@@ -50,8 +50,8 @@ export class ResourceModel extends BaseModel {
     passwordOptions?: Optional<PasswordOptions>;
     @Expose({ name: 'GeneratedValue' })
     @Transform(
-        ({value, obj}) =>
-            transformValue(String, 'generatedValue', value, obj, []),
+        (params: TransformFnParams) =>
+            transformValue(String, 'generatedValue', params.value, params.obj, []),
         {
             toClassOnly: true,
         }
@@ -59,8 +59,8 @@ export class ResourceModel extends BaseModel {
     generatedValue?: Optional<string>;
     @Expose({ name: 'Tags' })
     @Transform(
-        ({value, obj}) =>
-            transformValue(Tag, 'tags', value, obj, [Set]),
+        (params: TransformFnParams) =>
+            transformValue(Tag, 'tags', params.value, params.obj, [Set]),
         {
             toClassOnly: true,
         }
@@ -90,8 +90,8 @@ export class PasswordOptions extends BaseModel {
 
     @Expose({ name: 'Length' })
     @Transform(
-        ({value, obj}) =>
-            transformValue(Integer, 'length', value, obj, []),
+        (params: TransformFnParams) =>
+            transformValue(Integer, 'length', params.value, params.obj, []),
         {
             toClassOnly: true,
         }
@@ -99,8 +99,8 @@ export class PasswordOptions extends BaseModel {
     length?: Optional<integer>;
     @Expose({ name: 'IncludeNumbers' })
     @Transform(
-        ({value, obj}) =>
-            transformValue(Boolean, 'includeNumbers', value, obj, []),
+        (params: TransformFnParams) =>
+            transformValue(Boolean, 'includeNumbers', params.value, params.obj, []),
         {
             toClassOnly: true,
         }
@@ -108,8 +108,8 @@ export class PasswordOptions extends BaseModel {
     includeNumbers?: Optional<boolean>;
     @Expose({ name: 'IncludeSymbols' })
     @Transform(
-        ({value, obj}) =>
-            transformValue(Boolean, 'includeSymbols', value, obj, []),
+        (params: TransformFnParams) =>
+            transformValue(Boolean, 'includeSymbols', params.value, params.obj, []),
         {
             toClassOnly: true,
         }
@@ -117,8 +117,8 @@ export class PasswordOptions extends BaseModel {
     includeSymbols?: Optional<boolean>;
     @Expose({ name: 'ExcludeSimilarCharacters' })
     @Transform(
-        ({value, obj}) =>
-            transformValue(Boolean, 'excludeSimilarCharacters', value, obj, []),
+        (params: TransformFnParams) =>
+            transformValue(Boolean, 'excludeSimilarCharacters', params.value, params.obj, []),
         {
             toClassOnly: true,
         }
@@ -131,8 +131,8 @@ export class Tag extends BaseModel {
 
     @Expose({ name: 'Key' })
     @Transform(
-        ({value, obj}) =>
-            transformValue(String, 'key', value, obj, []),
+        (params: TransformFnParams) =>
+            transformValue(String, 'key', params.value, params.obj, []),
         {
             toClassOnly: true,
         }
@@ -140,8 +140,8 @@ export class Tag extends BaseModel {
     key?: Optional<string>;
     @Expose({ name: 'Value' })
     @Transform(
-        ({value, obj}) =>
-            transformValue(String, 'value_', value, obj, []),
+        (params: TransformFnParams) =>
+            transformValue(String, 'value_', params.value, params.obj, []),
         {
             toClassOnly: true,
         }
