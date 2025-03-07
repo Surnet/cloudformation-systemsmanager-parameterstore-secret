@@ -39,7 +39,7 @@ AWS_PROFILE=dev ./deploy.sh
 
 After registration, the resource can be used in CloudFormation templates.
 
-### Genrated Passwords
+### Generated Passwords
 
 ```yaml
 Resources:
