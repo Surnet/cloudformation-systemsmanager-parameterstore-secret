@@ -20,7 +20,7 @@ interface PasswordOptions {
     length?: bigint;
     includeNumbers?: boolean;
     includeSymbols?: boolean;
-    excludeSimilarCharacters?: boolean;
+    
 }
 
 // Helper function to generate a random password
@@ -28,17 +28,13 @@ function generatePassword(options: PasswordOptions = {}): string {
     const {
         length = 16,
         includeNumbers = true,
-        includeSymbols = true,
-        excludeSimilarCharacters = false
+        includeSymbols = true
     } = options;
   
     let chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   
     if (includeNumbers) chars += '0123456789';
     if (includeSymbols) chars += '!@#$%^&*()_+~`|}{[]:;?><,./-=';
-    if (excludeSimilarCharacters) {
-        chars = chars.replace(/[ilLI|`oO0]/g, '');
-    }
   
     let password = '';
     for (let i = 0; i < length; i++) {
@@ -77,27 +73,34 @@ class Resource extends BaseResource<ResourceModel> {
             if (!(session instanceof SessionProxy)) {
                 throw new exceptions.InternalFailure('Session not initialized');
             }
-
-            logger.log('1: ' + JSON.stringify(model));
-            logger.log('2: ' + JSON.stringify(request.desiredResourceState));
-            logger.log('3: ' + JSON.stringify(request));
-            logger.log('4: ' + JSON.stringify(session));
             
             logger.log(`Creating parameter ${model.name}`);
             const ssm = session.client<SSM>('SSM');
-            
-            const passwordOptions: PasswordOptions = model.passwordOptions || {};
-            const generatedPassword = generatePassword({
-                length: passwordOptions.length,
-                includeNumbers: passwordOptions.includeNumbers !== false,
-                includeSymbols: passwordOptions.includeSymbols !== false,
-                excludeSimilarCharacters: passwordOptions.excludeSimilarCharacters
-            });
+
+            if (model.passwordOptions && model.passwordInput) {
+                throw new exceptions.InvalidRequest('Cannot specify both PasswordOptions and PasswordInput');
+            }
+
+            let password: string;
+            if (model.passwordInput) {
+                // If the password is provided, just create the parameter with that value
+                password = model.passwordInput;
+            } else if (model.passwordOptions) {
+                // Otherwise, generate a random password
+                const passwordOptions: PasswordOptions = model.passwordOptions;
+                password = generatePassword({
+                    length: passwordOptions.length,
+                    includeNumbers: passwordOptions.includeNumbers !== false,
+                    includeSymbols: passwordOptions.includeSymbols !== false
+                });
+            } else {
+                throw new exceptions.InvalidRequest('Must specify either PasswordOptions or PasswordInput');
+            }
             
             const params: SSM.Types.PutParameterRequest = {
                 Name: model.name,
                 Type: 'SecureString',
-                Value: generatedPassword,
+                Value: password,
                 Overwrite: false
             };
             
@@ -115,7 +118,7 @@ class Resource extends BaseResource<ResourceModel> {
             await ssm.putParameter(params).promise();
             
             // Set the generated value on the model
-            model.generatedValue = generatedPassword;
+            model.password = password;
             progress.resourceModel = model;
             progress.status = OperationStatus.Success;
         } catch (err) {
@@ -168,12 +171,40 @@ class Resource extends BaseResource<ResourceModel> {
                 Name: model.name,
                 WithDecryption: true
             }).promise();
+
+            if (model.passwordOptions && model.passwordInput) {
+                throw new exceptions.InvalidRequest('Cannot specify both PasswordOptions and PasswordInput');
+            }
+
+            let password = existingParam.Parameter.Value;
+            if (model.passwordInput) {
+                // If the password is provided, just update the parameter with that value
+                password = model.passwordInput;
+            } else if (model.passwordOptions) {
+                if (model.passwordOptions.length === oldModel?.passwordOptions?.length &&
+                    model.passwordOptions.includeNumbers === oldModel.passwordOptions.includeNumbers &&
+                    model.passwordOptions.includeSymbols === oldModel.passwordOptions.includeSymbols &&
+                    model.passwordOptions.serial === oldModel.passwordOptions.serial) {
+                    // If the password options haven't changed, keep the existing password
+                    password = existingParam.Parameter.Value;
+                } else {
+                    // Otherwise, generate a random password if passwordOptions changed
+                    const passwordOptions: PasswordOptions = model.passwordOptions;
+                    password = generatePassword({
+                        length: passwordOptions.length,
+                        includeNumbers: passwordOptions.includeNumbers !== false,
+                        includeSymbols: passwordOptions.includeSymbols !== false
+                    });
+                }
+            } else {
+                throw new exceptions.InvalidRequest('Must specify either PasswordOptions or PasswordInput');
+            }
             
             // Update the parameter with the new values
             const params: SSM.Types.PutParameterRequest = {
                 Name: model.name,
                 Type: 'SecureString',
-                Value: existingParam.Parameter.Value,
+                Value: password,
                 Overwrite: true
             };
             if (model.description) params.Description = model.description;
@@ -188,13 +219,6 @@ class Resource extends BaseResource<ResourceModel> {
             // Extract keys from desired tags for comparison
             const desiredTagKeys = new Set(Array.from(desiredTags).map(tag => tag.key));
             const tagsToRemove = new Set([...existingTags].filter(tag => !desiredTagKeys.has((tag as any).Key)));
-            if (tagsToAdd.size > 0) {
-                await ssm.addTagsToResource({
-                    ResourceType: 'Parameter',
-                    ResourceId: model.name,
-                    Tags: Array.from(tagsToAdd) as any as SSM.TagList
-                }).promise();
-            }
             if (tagsToRemove.size > 0) {
                 await ssm.removeTagsFromResource({
                     ResourceType: 'Parameter',
@@ -202,9 +226,16 @@ class Resource extends BaseResource<ResourceModel> {
                     TagKeys: Array.from(tagsToRemove).map(tag => (tag as any).Key)
                 }).promise();
             }
+            if (tagsToAdd.size > 0) {
+                await ssm.addTagsToResource({
+                    ResourceType: 'Parameter',
+                    ResourceId: model.name,
+                    Tags: Array.from(tagsToAdd) as any as SSM.TagList
+                }).promise();
+            }
 
             // Set the generated value on the model
-            model.generatedValue = existingParam.Parameter.Value;
+            model.password = existingParam.Parameter.Value;
             progress.resourceModel = model;
             progress.status = OperationStatus.Success;
         } catch (err) {
@@ -293,28 +324,8 @@ class Resource extends BaseResource<ResourceModel> {
                 WithDecryption: true
             }).promise();
             
-            const describeResponse = await ssm.describeParameters({
-                ParameterFilters: [{
-                    Key: 'Name',
-                    Values: [model.name]
-                }]
-            }).promise();
-
-            const listTagsResponse = await ssm.listTagsForResource({
-                ResourceType: 'Parameter',
-                ResourceId: model.name
-            }).promise();
-            
-            if (describeResponse.Parameters && describeResponse.Parameters[0]) {
-                model.description = describeResponse.Parameters[0].Description;
-                model.tier = describeResponse.Parameters[0].Tier;
-            }
-            if (listTagsResponse.TagList) {
-                model.tags = new Set(listTagsResponse.TagList.map(tag => new Tag({ key: tag.Key, value_: tag.Value })));
-            } else {
-                model.tags = new Set();
-            }
-            model.generatedValue = response.Parameter.Value;
+            model.arn = response.Parameter.ARN;
+            model.password = response.Parameter.Value;
             
             const progress = ProgressEvent.success<ProgressEvent<ResourceModel, CallbackContext>>(model);
             return progress;

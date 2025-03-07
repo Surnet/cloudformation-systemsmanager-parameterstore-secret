@@ -17,6 +17,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#keyid" title="KeyId">KeyId</a>" : <i>String</i>,
         "<a href="#tier" title="Tier">Tier</a>" : <i>String</i>,
         "<a href="#passwordoptions" title="PasswordOptions">PasswordOptions</a>" : <i><a href="passwordoptions.md">PasswordOptions</a></i>,
+        "<a href="#passwordinput" title="PasswordInput">PasswordInput</a>" : <i>String</i>,
         "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tag.md">Tag</a>, ... ]</i>
     }
 }
@@ -32,6 +33,7 @@ Properties:
     <a href="#keyid" title="KeyId">KeyId</a>: <i>String</i>
     <a href="#tier" title="Tier">Tier</a>: <i>String</i>
     <a href="#passwordoptions" title="PasswordOptions">PasswordOptions</a>: <i><a href="passwordoptions.md">PasswordOptions</a></i>
+    <a href="#passwordinput" title="PasswordInput">PasswordInput</a>: <i>String</i>
     <a href="#tags" title="Tags">Tags</a>: <i>
       - <a href="tag.md">Tag</a></i>
 </pre>
@@ -98,6 +100,16 @@ _Type_: <a href="passwordoptions.md">PasswordOptions</a>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
+#### PasswordInput
+
+The password value. Either `PasswordInput` or `PasswordOptions` can be specified.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
 #### Tags
 
 An array of key-value pairs to apply to this resource.
@@ -120,7 +132,11 @@ The `Fn::GetAtt` intrinsic function returns a value for a specified attribute of
 
 For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::GetAtt](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html).
 
-#### GeneratedValue
+#### Arn
 
-The generated password value. This is a read-only property populated after creation.
+The Amazon Resource Name (ARN) of the parameter.
+
+#### Password
+
+The password value. This is a read-only property populated after creation.
 

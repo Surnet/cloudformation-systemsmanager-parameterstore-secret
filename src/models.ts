@@ -9,6 +9,15 @@ export class ResourceModel extends BaseModel {
     @Exclude()
     protected readonly IDENTIFIER_KEY_NAME: string = '/properties/Name';
 
+    @Expose({ name: 'Arn' })
+    @Transform(
+        (params: TransformFnParams) =>
+            transformValue(String, 'arn', params.value, params.obj, []),
+        {
+            toClassOnly: true,
+        }
+    )
+    arn?: Optional<string>;
     @Expose({ name: 'Name' })
     @Transform(
         (params: TransformFnParams) =>
@@ -48,15 +57,24 @@ export class ResourceModel extends BaseModel {
     @Expose({ name: 'PasswordOptions' })
     @Type(() => PasswordOptions)
     passwordOptions?: Optional<PasswordOptions>;
-    @Expose({ name: 'GeneratedValue' })
+    @Expose({ name: 'PasswordInput' })
     @Transform(
         (params: TransformFnParams) =>
-            transformValue(String, 'generatedValue', params.value, params.obj, []),
+            transformValue(String, 'passwordInput', params.value, params.obj, []),
         {
             toClassOnly: true,
         }
     )
-    generatedValue?: Optional<string>;
+    passwordInput?: Optional<string>;
+    @Expose({ name: 'Password' })
+    @Transform(
+        (params: TransformFnParams) =>
+            transformValue(String, 'password', params.value, params.obj, []),
+        {
+            toClassOnly: true,
+        }
+    )
+    password?: Optional<string>;
     @Expose({ name: 'Tags' })
     @Transform(
         (params: TransformFnParams) =>
@@ -115,15 +133,15 @@ export class PasswordOptions extends BaseModel {
         }
     )
     includeSymbols?: Optional<boolean>;
-    @Expose({ name: 'ExcludeSimilarCharacters' })
+    @Expose({ name: 'Serial' })
     @Transform(
         (params: TransformFnParams) =>
-            transformValue(Boolean, 'excludeSimilarCharacters', params.value, params.obj, []),
+            transformValue(Integer, 'serial', params.value, params.obj, []),
         {
             toClassOnly: true,
         }
     )
-    excludeSimilarCharacters?: Optional<boolean>;
+    serial?: Optional<integer>;
 
 }
 
