@@ -1,21 +1,36 @@
 # AWS CloudFormation Systems Manager Parameter Store Secret Extension
 
 This CloudFormation Extension allows the creation of AWS Systems Manager Parameter Store Secrets with automatically generated passwords.
+You can find the docs in [here](./docs/README.md).
 
 ## Installation
 
-The Resource Provider must be registered before use:
+The Resource Provider must be installed before use.
+
+### Dependencies
+
+To build and install the Extension some CLI Tools are needed.
+On Mac you can install them like this.
 
 ```bash
-aws cloudformation register-type \
-  --type-name Surnet::ParameterStore::Secret \
-  --schema-handler-package s3://bucket-name/resource-handler.zip \
-  --type RESOURCE
+brew install aws-sam-cli
+brew install pipx
+pipx install cloudformation-cli
+pipx runpip cloudformation-cli install --upgrade setuptools
+pipx inject cloudformation-cli git+https://github.com/HeatherFlux/cloudformation-cli-typescript-plugin.git@bugfix/arch-1058-fix-dependency-and-python --force
 ```
+
+### Installation
+
+To install the extension you can run the following command.
+
+`./deploy.sh`
 
 ## Usage
 
-After registration, the resource can be used in CloudFormation templates:
+After registration, the resource can be used in CloudFormation templates.
+
+### Genrated Passwords
 
 ```yaml
 Resources:
@@ -28,7 +43,7 @@ Resources:
         Length: 24
         IncludeNumbers: true
         IncludeSymbols: true
-        ExcludeSimilarCharacters: true
+        Serial: 1
       Tags:
         - Key: Environment
           Value: Production
@@ -37,48 +52,28 @@ Resources:
 
 Outputs:
   DatabasePassword:
-    Value: !GetAtt MyDatabaseSecret.GeneratedValue
+    Value: !GetAtt MyDatabaseSecret.Password
     Description: "The generated database password"
 ```
 
-## Properties
-
-| Property | Type | Description | Required |
-|----------|------|-------------|----------|
-| Name | String | Name of the parameter in SSM Parameter Store | Yes |
-| Description | String | Description of the parameter | No |
-| KeyId | String | KMS Key ID for encryption | No |
-| Tier | String | Parameter Store Tier (Standard or Advanced) | No |
-| PasswordOptions | Object | Options for password generation | No |
-| Tags | Array | List of tags | No |
-
-### PasswordOptions
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| Length | Number | 16 | Length of the password |
-| IncludeNumbers | Boolean | true | Include numbers |
-| IncludeSymbols | Boolean | true | Include special characters |
-| ExcludeSimilarCharacters | Boolean | false | Exclude similar-looking characters |
-
-## Return Values
-
-| Attribute | Description |
-|-----------|-------------|
-| Name | Name of the parameter |
-| GeneratedValue | The generated password value |
-
-## Example for accessing the password
+### User-defined Passwords
 
 ```yaml
 Resources:
-  MyEC2Instance:
-    Type: AWS::EC2::Instance
+  MyDatabaseSecret:
+    Type: Surnet::ParameterStore::Secret
     Properties:
-      ImageId: ami-12345678
-      InstanceType: t3.micro
-      UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash
-          echo "DB_PASSWORD=${MyDatabaseSecret.GeneratedValue}" > /etc/app/config
+      Name: /prod/db/password
+      Description: "Production database password"
+      PasswordInput: "MySuperSecretPassword"
+      Tags:
+        - Key: Environment
+          Value: Production
+        - Key: Application
+          Value: MyApp
+
+Outputs:
+  DatabasePassword:
+    Value: !GetAtt MyDatabaseSecret.Password
+    Description: "The generated database password"
 ```
