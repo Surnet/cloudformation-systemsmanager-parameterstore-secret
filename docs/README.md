@@ -92,7 +92,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### PasswordOptions
 
-Options for password generation
+Options for password generation. Either `PasswordInput` or `PasswordOptions` can be specified.
 
 _Required_: No
 

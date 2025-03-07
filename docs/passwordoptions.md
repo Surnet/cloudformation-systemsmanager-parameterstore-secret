@@ -1,6 +1,6 @@
 # Surnet::ParameterStore::Secret PasswordOptions
 
-Options for password generation
+Options for password generation. Either `PasswordInput` or `PasswordOptions` can be specified.
 
 ## Syntax
 
