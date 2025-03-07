@@ -13,6 +13,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "<a href="#length" title="Length">Length</a>" : <i>Integer</i>,
     "<a href="#includenumbers" title="IncludeNumbers">IncludeNumbers</a>" : <i>Boolean</i>,
     "<a href="#includesymbols" title="IncludeSymbols">IncludeSymbols</a>" : <i>Boolean</i>,
+    "<a href="#urlsafe" title="UrlSafe">UrlSafe</a>" : <i>Boolean</i>,
     "<a href="#serial" title="Serial">Serial</a>" : <i>Integer</i>
 }
 </pre>
@@ -23,6 +24,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 <a href="#length" title="Length">Length</a>: <i>Integer</i>
 <a href="#includenumbers" title="IncludeNumbers">IncludeNumbers</a>: <i>Boolean</i>
 <a href="#includesymbols" title="IncludeSymbols">IncludeSymbols</a>: <i>Boolean</i>
+<a href="#urlsafe" title="UrlSafe">UrlSafe</a>: <i>Boolean</i>
 <a href="#serial" title="Serial">Serial</a>: <i>Integer</i>
 </pre>
 
@@ -51,6 +53,16 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 #### IncludeSymbols
 
 Whether to include symbols in the password
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### UrlSafe
+
+Whether to generate a password with URL-safe characters
 
 _Required_: No
 

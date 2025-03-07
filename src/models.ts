@@ -133,6 +133,15 @@ export class PasswordOptions extends BaseModel {
         }
     )
     includeSymbols?: Optional<boolean>;
+    @Expose({ name: 'UrlSafe' })
+    @Transform(
+        (params: TransformFnParams) =>
+            transformValue(Boolean, 'urlSafe', params.value, params.obj, []),
+        {
+            toClassOnly: true,
+        }
+    )
+    urlSafe?: Optional<boolean>;
     @Expose({ name: 'Serial' })
     @Transform(
         (params: TransformFnParams) =>

@@ -20,7 +20,7 @@ interface PasswordOptions {
     length?: bigint;
     includeNumbers?: boolean;
     includeSymbols?: boolean;
-    
+    urlSafe?: boolean;
 }
 
 // Helper function to generate a random password
@@ -28,13 +28,15 @@ function generatePassword(options: PasswordOptions = {}): string {
     const {
         length = 16,
         includeNumbers = true,
-        includeSymbols = true
+        includeSymbols = true,
+        urlSafe = false
     } = options;
   
     let chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   
     if (includeNumbers) chars += '0123456789';
-    if (includeSymbols) chars += '!@#$%^&*()_+~`|}{[]:;?><,./-=';
+    if (includeSymbols && !urlSafe) chars += '!@#$%^&*()_+~`|}{[]:;?><,./-=';
+    if (includeSymbols && urlSafe) chars += '-._~';
   
     let password = '';
     for (let i = 0; i < length; i++) {
@@ -91,7 +93,8 @@ class Resource extends BaseResource<ResourceModel> {
                 password = generatePassword({
                     length: passwordOptions.length,
                     includeNumbers: passwordOptions.includeNumbers !== false,
-                    includeSymbols: passwordOptions.includeSymbols !== false
+                    includeSymbols: passwordOptions.includeSymbols !== false,
+                    urlSafe: passwordOptions.urlSafe
                 });
             } else {
                 throw new exceptions.InvalidRequest('Must specify either PasswordOptions or PasswordInput');
@@ -184,6 +187,7 @@ class Resource extends BaseResource<ResourceModel> {
                 if (model.passwordOptions.length === oldModel?.passwordOptions?.length &&
                     model.passwordOptions.includeNumbers === oldModel.passwordOptions.includeNumbers &&
                     model.passwordOptions.includeSymbols === oldModel.passwordOptions.includeSymbols &&
+                    model.passwordOptions.urlSafe === oldModel.passwordOptions.urlSafe &&
                     model.passwordOptions.serial === oldModel.passwordOptions.serial) {
                     // If the password options haven't changed, keep the existing password
                     password = existingParam.Parameter.Value;
@@ -193,7 +197,8 @@ class Resource extends BaseResource<ResourceModel> {
                     password = generatePassword({
                         length: passwordOptions.length,
                         includeNumbers: passwordOptions.includeNumbers !== false,
-                        includeSymbols: passwordOptions.includeSymbols !== false
+                        includeSymbols: passwordOptions.includeSymbols !== false,
+                        urlSafe: passwordOptions.urlSafe
                     });
                 }
             } else {
