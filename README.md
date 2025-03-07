@@ -13,6 +13,7 @@ To build and install the Extension some CLI Tools are needed.
 On Mac you can install them like this.
 
 ```bash
+brew install awscli
 brew install aws-sam-cli
 brew install pipx
 pipx install cloudformation-cli
@@ -22,9 +23,17 @@ pipx inject cloudformation-cli git+https://github.com/HeatherFlux/cloudformation
 
 ### Installation
 
-To install the extension you can run the following command.
+To install the extension you can run the following command:
 
-`AWS_PROFILE=dev ./deploy.sh`
+```bash
+./deploy.sh
+```
+
+Use [environment variables](https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-envvars.html) to specify where to install the extension.
+
+```bash
+AWS_PROFILE=dev ./deploy.sh
+```
 
 ## Usage
 
