@@ -33,10 +33,14 @@ Resources:
                 - "kms:Decrypt"
                 - "kms:Encrypt"
                 - "kms:GenerateDataKey"
+                - "ssm:AddTagsToResource"
                 - "ssm:DeleteParameter"
                 - "ssm:DescribeParameters"
                 - "ssm:GetParameter"
+                - "ssm:GetParameters"
+                - "ssm:ListTagsForResource"
                 - "ssm:PutParameter"
+                - "ssm:RemoveTagsFromResource"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:

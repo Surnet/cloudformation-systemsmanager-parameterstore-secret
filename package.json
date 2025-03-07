@@ -20,8 +20,5 @@
     "devDependencies": {
         "@types/node": "^20.17.23",
         "typescript": "^5.8.2"
-    },
-    "optionalDependencies": {
-        "aws-sdk": "^2.1692.0"
     }
 }

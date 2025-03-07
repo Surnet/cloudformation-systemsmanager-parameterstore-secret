@@ -11,7 +11,7 @@ import {
     ResourceHandlerRequest,
     SessionProxy,
 } from '@amazon-web-services-cloudformation/cloudformation-cli-typescript-lib';
-import { ResourceModel, TypeConfigurationModel } from './models';
+import { ResourceModel, Tag, TypeConfigurationModel } from './models';
 import { SSM } from 'aws-sdk';
 
 interface CallbackContext extends Record<string, any> {}
@@ -77,6 +77,11 @@ class Resource extends BaseResource<ResourceModel> {
             if (!(session instanceof SessionProxy)) {
                 throw new exceptions.InternalFailure('Session not initialized');
             }
+
+            logger.log('1: ' + JSON.stringify(model));
+            logger.log('2: ' + JSON.stringify(request.desiredResourceState));
+            logger.log('3: ' + JSON.stringify(request));
+            logger.log('4: ' + JSON.stringify(session));
             
             logger.log(`Creating parameter ${model.name}`);
             const ssm = session.client<SSM>('SSM');
@@ -99,10 +104,13 @@ class Resource extends BaseResource<ResourceModel> {
             if (model.description) params.Description = model.description;
             if (model.keyId) params.KeyId = model.keyId;
             if (model.tier) params.Tier = model.tier;
-            // if (model.tags) params.Tags = Array.from(model.tags, ({ key, value_ }) => ({
-            //     Key: key,
-            //     Value: value_
-            // }));
+            if (request.desiredResourceState.tags) params.Tags = Array.from(request.desiredResourceState.tags) as any as SSM.TagList;
+            if (request.systemTags) {
+                if (!params.Tags) params.Tags = [];
+                Object.entries(request.systemTags).forEach(([key, value]) => {
+                    params.Tags.push({ Key: key, Value: value });
+                });
+            }
             
             await ssm.putParameter(params).promise();
             
@@ -161,23 +169,40 @@ class Resource extends BaseResource<ResourceModel> {
                 WithDecryption: true
             }).promise();
             
-            const params: any = {
+            // Update the parameter with the new values
+            const params: SSM.Types.PutParameterRequest = {
                 Name: model.name,
                 Type: 'SecureString',
                 Value: existingParam.Parameter.Value,
                 Overwrite: true
             };
-            
             if (model.description) params.Description = model.description;
             if (model.keyId) params.KeyId = model.keyId;
             if (model.tier) params.Tier = model.tier;
-            // if (model.tags) params.Tags = Array.from(model.tags, ({ key, value_ }) => ({
-            //     Key: key,
-            //     Value: value_
-            // }));
-            
             await ssm.putParameter(params).promise();
             
+            // Compare tags from desired state to existing state and update as needed with add or remove tag
+            const desiredTags = new Set(request.desiredResourceState.tags);
+            const existingTags = new Set(oldModel?.tags || []);
+            const tagsToAdd = new Set([...desiredTags].filter(tag => !existingTags.has(tag)));
+            // Extract keys from desired tags for comparison
+            const desiredTagKeys = new Set(Array.from(desiredTags).map(tag => tag.key));
+            const tagsToRemove = new Set([...existingTags].filter(tag => !desiredTagKeys.has((tag as any).Key)));
+            if (tagsToAdd.size > 0) {
+                await ssm.addTagsToResource({
+                    ResourceType: 'Parameter',
+                    ResourceId: model.name,
+                    Tags: Array.from(tagsToAdd) as any as SSM.TagList
+                }).promise();
+            }
+            if (tagsToRemove.size > 0) {
+                await ssm.removeTagsFromResource({
+                    ResourceType: 'Parameter',
+                    ResourceId: model.name,
+                    TagKeys: Array.from(tagsToRemove).map(tag => (tag as any).Key)
+                }).promise();
+            }
+
             // Set the generated value on the model
             model.generatedValue = existingParam.Parameter.Value;
             progress.resourceModel = model;
@@ -274,10 +299,20 @@ class Resource extends BaseResource<ResourceModel> {
                     Values: [model.name]
                 }]
             }).promise();
+
+            const listTagsResponse = await ssm.listTagsForResource({
+                ResourceType: 'Parameter',
+                ResourceId: model.name
+            }).promise();
             
             if (describeResponse.Parameters && describeResponse.Parameters[0]) {
                 model.description = describeResponse.Parameters[0].Description;
                 model.tier = describeResponse.Parameters[0].Tier;
+            }
+            if (listTagsResponse.TagList) {
+                model.tags = new Set(listTagsResponse.TagList.map(tag => new Tag({ key: tag.Key, value_: tag.Value })));
+            } else {
+                model.tags = new Set();
             }
             model.generatedValue = response.Parameter.Value;
             
