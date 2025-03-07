@@ -24,7 +24,7 @@ pipx inject cloudformation-cli git+https://github.com/HeatherFlux/cloudformation
 
 To install the extension you can run the following command.
 
-`./deploy.sh`
+`AWS_PROFILE=dev ./deploy.sh`
 
 ## Usage
 
