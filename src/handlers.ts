@@ -217,7 +217,7 @@ class Resource extends BaseResource<ResourceModel> {
             const existingTags = new Set(oldModel?.tags || []);
             const tagsToAdd = new Set([...desiredTags].filter(tag => !existingTags.has(tag)));
             // Extract keys from desired tags for comparison
-            const desiredTagKeys = new Set(Array.from(desiredTags).map(tag => tag.key));
+            const desiredTagKeys = new Set(Array.from(desiredTags).map(tag => (tag as any).Key));
             const tagsToRemove = new Set([...existingTags].filter(tag => !desiredTagKeys.has((tag as any).Key)));
             if (tagsToRemove.size > 0) {
                 await ssm.removeTagsFromResource({
